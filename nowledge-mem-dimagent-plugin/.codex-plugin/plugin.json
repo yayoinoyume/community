@@ -1,0 +1,21 @@
+{
+  "name": "nowledge-mem",
+  "version": "0.7.24",
+  "description": "Personal knowledge graph for AI agents — remembers decisions, searches past work",
+  "homepage": "https://mem.nowledge.co/",
+  "repository": "https://github.com/nowledge-co/community",
+  "license": "MIT",
+  "skills": "./skills/",
+  "hooks": "./hooks/hooks.json",
+  "interface": {
+    "displayName": "Nowledge Mem",
+    "shortDescription": "Memory that follows you across AI tools",
+    "developerName": "Nowledge Labs",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://mem.nowledge.co"
+  }
+}

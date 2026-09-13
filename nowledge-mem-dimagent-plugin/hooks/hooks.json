@@ -1,0 +1,82 @@
+{
+  "description": "Nowledge Mem lifecycle hooks \u2014 Context Bundle / Working Memory injection and session capture",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "ROOT=\"${GROK_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}\"; SCRIPT=\"$ROOT/scripts/nmem-hook-read.sh\"; { [ -f \"$SCRIPT\" ] && sh \"$SCRIPT\"; } || cat \"$HOME/ai-now/memory.md\" 2>/dev/null || true"
+          }
+        ]
+      },
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "ROOT=\"${GROK_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}\"; SCRIPT=\"$ROOT/scripts/nmem-hook-read.sh\"; { { [ -f \"$SCRIPT\" ] && sh \"$SCRIPT\"; } || cat \"$HOME/ai-now/memory.md\" 2>/dev/null || true; } && printf '\\n---\\nContext was compacted. If you discovered important insights, save them before continuing:\\n  nmem m add \"<insight>\" --title \"<short title>\" --importance 0.8\\n'"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PY=\"$(command -v python3 || command -v python || true)\"; ROOT=\"${GROK_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}\"; SCRIPT=\"$ROOT/scripts/nmem-hook-subagent.py\"; [ -n \"$PY\" ] && [ -f \"$SCRIPT\" ] && \"$PY\" \"$SCRIPT\" || true",
+            "statusMessage": "Preparing Nowledge Mem subagent context...",
+            "timeout": 6
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v nmem >/dev/null 2>&1 || { command -v nmem.cmd >/dev/null 2>&1 && nmem(){ local q=''; for a in \"$@\"; do q=\"$q \\\"$a\\\"\"; done; cmd.exe /s /c \"\\\"nmem.cmd\\\"$q\"; }; }; command -v nmem >/dev/null 2>&1 && printf '[Nowledge Mem] Search proactively when past knowledge would help: nmem --json m search \"query\". Save decisions and learnings autonomously: nmem m add \"content\" -t \"Title\" -i 0.8. For recurring procedural work, check managed skills with MCP find_skills or nmem skills match \"task\"; after using one, report with report_skill_outcome or nmem skills outcome <id> --version <ver> --outcome completed.' || true"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PY=\"$(command -v python3 || command -v python || true)\"; ROOT=\"${GROK_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}\"; SCRIPT=\"$ROOT/scripts/nmem-hook-save.py\"; [ -n \"$PY\" ] && [ -f \"$SCRIPT\" ] && \"$PY\" \"$SCRIPT\" --event pre-compact || true",
+            "statusMessage": "Saving current thread before compaction...",
+            "timeout": 35
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PY=\"$(command -v python3 || command -v python || true)\"; ROOT=\"${GROK_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}\"; SCRIPT=\"$ROOT/scripts/nmem-hook-save.py\"; [ -n \"$PY\" ] && [ -f \"$SCRIPT\" ] && \"$PY\" \"$SCRIPT\" --event stop --detach || true",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PY=\"$(command -v python3 || command -v python || true)\"; ROOT=\"${GROK_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}\"; SCRIPT=\"$ROOT/scripts/nmem-hook-save.py\"; [ -n \"$PY\" ] && [ -f \"$SCRIPT\" ] && \"$PY\" \"$SCRIPT\" --event subagent-stop --detach || true",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
